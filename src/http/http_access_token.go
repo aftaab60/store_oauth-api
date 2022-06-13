@@ -9,7 +9,9 @@ import (
 //this is handler file, same as controller in MVC pattern
 
 type AccessTokenHandler interface {
+	Create(c *gin.Context)
 	GetById(c *gin.Context)
+	UpdateExpirationTime(c *gin.Context)
 }
 
 type accessTokenHandler struct {
@@ -22,11 +24,28 @@ func NewHandler(service access_token.Service) AccessTokenHandler {
 	}
 }
 
+func (h *accessTokenHandler) Create(c *gin.Context) {
+	var accessToken access_token.AccessToken
+	if err := c.ShouldBindJSON(&accessToken); err != nil {
+		c.JSON(http.StatusBadRequest, err)
+		return
+	}
+	if err := h.service.Create(accessToken); err != nil {
+		c.JSON(err.Status, err)
+		return
+	}
+	c.JSON(http.StatusCreated, accessToken)
+}
+
 func (h *accessTokenHandler) GetById(c *gin.Context) {
-	accessTokenId := c.Param("access_token_id")
-	accessToken, err := h.service.GetById(accessTokenId)
+	accessToken, err := h.service.GetById(c.Param("access_token_id"))
 	if err != nil {
 		c.JSON(err.Status, err)
+		return
 	}
 	c.JSON(http.StatusOK, accessToken)
+}
+
+func (h *accessTokenHandler) UpdateExpirationTime(c *gin.Context) {
+	//TODO implement
 }

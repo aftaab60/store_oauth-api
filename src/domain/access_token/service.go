@@ -6,12 +6,16 @@ import (
 )
 
 type Service interface {
+	Create(token AccessToken) *errors.RestErr
 	GetById(string) (*AccessToken, *errors.RestErr)
+	UpdateExpirationTime(token *AccessToken) *errors.RestErr
 }
 
 //service requires any repository who has GetById implemented
 type Repository interface {
+	Create(token AccessToken) *errors.RestErr
 	GetById(string) (*AccessToken, *errors.RestErr)
+	UpdateExpirationTime(token *AccessToken) *errors.RestErr
 }
 
 type service struct {
@@ -22,6 +26,18 @@ func NewService(repo Repository) Service {
 	return &service{
 		repository: repo,
 	}
+}
+
+func (s *service) Create(token AccessToken) *errors.RestErr {
+	if err := token.Validate(); err != nil {
+		return err
+	}
+	token.AccessToken = strings.TrimSpace(token.AccessToken)
+
+	if err := s.repository.Create(token); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (s *service) GetById(accessTokenId string) (*AccessToken, *errors.RestErr) {
@@ -35,4 +51,9 @@ func (s *service) GetById(accessTokenId string) (*AccessToken, *errors.RestErr) 
 		return nil, err
 	}
 	return accessToken, nil
+}
+
+func (s *service) UpdateExpirationTime(token *AccessToken) *errors.RestErr {
+	//TODO implement
+	return nil
 }
