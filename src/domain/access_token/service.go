@@ -1,6 +1,8 @@
 package access_token
 
 import (
+	"github.com/aftaab60/store_oauth-api/src/domain/user"
+	"github.com/aftaab60/store_oauth-api/src/repository/rest"
 	"github.com/aftaab60/store_oauth-api/src/utils/errors"
 	"strings"
 )
@@ -33,6 +35,14 @@ func (s *service) Create(token AccessToken) *errors.RestErr {
 		return err
 	}
 	token.AccessToken = strings.TrimSpace(token.AccessToken)
+
+	userRepository := rest.NewRepository()
+	if _, err := userRepository.Login(user.LoginRequest{
+		Email:    "testemail",
+		Password: "password",
+	}); err != nil {
+		return err
+	}
 
 	if err := s.repository.Create(token); err != nil {
 		return err
